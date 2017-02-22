@@ -1,8 +1,11 @@
 package javio.com.nytimessearch.activities;
 
+import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
@@ -10,10 +13,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.EditText;
+import android.widget.DatePicker;
 import android.widget.GridView;
-import android.widget.Toast;
 
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.JsonHttpResponseHandler;
@@ -24,26 +25,21 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import butterknife.OnClick;
 import cz.msebera.android.httpclient.Header;
 import javio.com.nytimessearch.R;
 import javio.com.nytimessearch.adapters.ArticleArrayAdapter;
 import javio.com.nytimessearch.models.Article;
 
-public class SearchActivity extends AppCompatActivity {
+public class SearchActivity extends AppCompatActivity implements DatePickerDialog.OnDateSetListener {
 
     private String url = "https://api.nytimes.com/svc/search/v2/articlesearch.json";
     private String apiKey = "1085432d3bc14d72a7a0b84aa4c21903";
 
-    @BindView(R.id.etQuery)
-    EditText etQuery;
-
-    @BindView(R.id.btnSearch)
-    Button btnSearch;
 
     @BindView(R.id.gvResults)
     GridView gvResults;
@@ -57,6 +53,7 @@ public class SearchActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+
         setSupportActionBar(toolbar);
 
         setupViews();
@@ -87,7 +84,23 @@ public class SearchActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_search, menu);
-        return true;
+
+        MenuItem searchItem = menu.findItem(R.id.action_search);
+        final SearchView searchView =  (SearchView) MenuItemCompat.getActionView(searchItem);
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                searchView.clearFocus();
+                onArticleSearch(query);
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                return false;
+            }
+        });
+        return super.onCreateOptionsMenu(menu);
     }
 
     @Override
@@ -105,11 +118,7 @@ public class SearchActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    @OnClick(R.id.btnSearch)
-    public void onArticleSearch(View view) {
-        String query = etQuery.getText().toString();
-
-        Toast.makeText(this, "Search for +" + query, Toast.LENGTH_LONG).show();
+    public void onArticleSearch(String query) {
 
         AsyncHttpClient client = new AsyncHttpClient();
 
@@ -139,5 +148,13 @@ public class SearchActivity extends AppCompatActivity {
                 Log.d("DEBUG", errorResponse.toString());
             }
         });
+    }
+
+    @Override
+    public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
+        final Calendar c = Calendar.getInstance();
+        c.set(Calendar.YEAR, year);
+        c.set(Calendar.MONTH, month);
+        c.set(Calendar.DAY_OF_MONTH, dayOfMonth);
     }
 }

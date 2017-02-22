@@ -25,7 +25,7 @@ public class ArticleActivity extends AppCompatActivity {
 
         setupViews();
 
-       final Article article = (Article) getIntent().getParcelableExtra("article");
+       final Article article =  getIntent().getParcelableExtra("article");
 
         webView.setWebViewClient(new WebViewClient(){
             @Override
