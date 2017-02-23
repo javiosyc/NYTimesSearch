@@ -17,7 +17,6 @@
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
         android:id="@+id/gvResults"
-        android:layout_below="@+id/btnFilter"
         android:numColumns="4" />
 
 

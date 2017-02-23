@@ -7,6 +7,7 @@ import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -16,37 +17,27 @@ import android.widget.ArrayAdapter;
 import android.widget.DatePicker;
 import android.widget.GridView;
 
-import com.loopj.android.http.AsyncHttpClient;
-import com.loopj.android.http.JsonHttpResponseHandler;
-import com.loopj.android.http.RequestParams;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import cz.msebera.android.httpclient.Header;
 import javio.com.nytimessearch.R;
 import javio.com.nytimessearch.adapters.ArticleArrayAdapter;
+import javio.com.nytimessearch.listeners.EndlessScrollListener;
 import javio.com.nytimessearch.models.Article;
+import javio.com.nytimessearch.network.NYTimesAsyncHttpClient;
 
 public class SearchActivity extends AppCompatActivity implements DatePickerDialog.OnDateSetListener {
-
-    private String url = "https://api.nytimes.com/svc/search/v2/articlesearch.json";
-    private String apiKey = "1085432d3bc14d72a7a0b84aa4c21903";
-
-
     @BindView(R.id.gvResults)
     GridView gvResults;
 
     private List<Article> articles;
 
     private ArrayAdapter adapter;
+
+    private String queryString;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,6 +69,22 @@ public class SearchActivity extends AppCompatActivity implements DatePickerDialo
                 startActivity(intent);
             }
         });
+
+        gvResults.setOnScrollListener(new EndlessScrollListener() {
+            @Override
+            public boolean onLoadMore(int page, int totalItemsCount) {
+                Log.d("DEBUG", "page: " + page + " , totalItemCount" + totalItemsCount);
+                loadNextDataFromApi(page);
+
+                return true;
+            }
+        });
+    }
+
+    private void loadNextDataFromApi(int page) {
+        Log.d("DEBUG", "page = " + page);
+        if (!TextUtils.isEmpty(queryString))
+            NYTimesAsyncHttpClient.getInstance().articleSearch(adapter, queryString, page - 1, false);
     }
 
     @Override
@@ -86,12 +93,15 @@ public class SearchActivity extends AppCompatActivity implements DatePickerDialo
         getMenuInflater().inflate(R.menu.menu_search, menu);
 
         MenuItem searchItem = menu.findItem(R.id.action_search);
-        final SearchView searchView =  (SearchView) MenuItemCompat.getActionView(searchItem);
+        final SearchView searchView = (SearchView) MenuItemCompat.getActionView(searchItem);
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
                 searchView.clearFocus();
-                onArticleSearch(query);
+                if (!TextUtils.isEmpty(query)) {
+                    queryString = query;
+                    NYTimesAsyncHttpClient.getInstance().articleSearch(adapter, query);
+                }
                 return true;
             }
 
@@ -116,38 +126,6 @@ public class SearchActivity extends AppCompatActivity implements DatePickerDialo
         }
 
         return super.onOptionsItemSelected(item);
-    }
-
-    public void onArticleSearch(String query) {
-
-        AsyncHttpClient client = new AsyncHttpClient();
-
-        RequestParams params = new RequestParams();
-        params.put("api-key", apiKey);
-        params.put("page", 0);
-        params.put("q", query);
-
-        client.get(url, params, new JsonHttpResponseHandler() {
-            @Override
-            public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
-                Log.d("DEBUG", response.toString());
-
-                JSONArray articleJsonResults = null;
-
-                try {
-                    articleJsonResults = response.getJSONObject("response").getJSONArray("docs");
-
-                    adapter.addAll(Article.fromJsonArray(articleJsonResults));
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            @Override
-            public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
-                Log.d("DEBUG", errorResponse.toString());
-            }
-        });
     }
 
     @Override
