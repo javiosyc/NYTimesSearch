@@ -1,6 +1,5 @@
 package javio.com.nytimessearch.activities;
 
-import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.view.MenuItemCompat;
@@ -14,11 +13,9 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.DatePicker;
 import android.widget.GridView;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 
 import butterknife.BindView;
@@ -28,8 +25,9 @@ import javio.com.nytimessearch.adapters.ArticleArrayAdapter;
 import javio.com.nytimessearch.listeners.EndlessScrollListener;
 import javio.com.nytimessearch.models.Article;
 import javio.com.nytimessearch.network.NYTimesAsyncHttpClient;
+import javio.com.nytimessearch.utils.NetworkUtils;
 
-public class SearchActivity extends AppCompatActivity implements DatePickerDialog.OnDateSetListener {
+public class SearchActivity extends AppCompatActivity {
     @BindView(R.id.gvResults)
     GridView gvResults;
 
@@ -98,11 +96,12 @@ public class SearchActivity extends AppCompatActivity implements DatePickerDialo
             @Override
             public boolean onQueryTextSubmit(String query) {
                 searchView.clearFocus();
-                if (!TextUtils.isEmpty(query)) {
+                if (!TextUtils.isEmpty(query) && NetworkUtils.isNetworkAvailable(SearchActivity.this, true)) {
                     queryString = query;
                     NYTimesAsyncHttpClient.getInstance().articleSearch(adapter, query);
+                    return true;
                 }
-                return true;
+                return false;
             }
 
             @Override
@@ -126,13 +125,5 @@ public class SearchActivity extends AppCompatActivity implements DatePickerDialo
         }
 
         return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
-        final Calendar c = Calendar.getInstance();
-        c.set(Calendar.YEAR, year);
-        c.set(Calendar.MONTH, month);
-        c.set(Calendar.DAY_OF_MONTH, dayOfMonth);
     }
 }

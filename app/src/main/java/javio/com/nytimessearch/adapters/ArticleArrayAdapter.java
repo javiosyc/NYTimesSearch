@@ -16,14 +16,17 @@ import java.util.List;
 
 import javio.com.nytimessearch.R;
 import javio.com.nytimessearch.models.Article;
+import javio.com.nytimessearch.utils.NetworkUtils;
 
 /**
  * Created by javiosyc on 2017/2/21.
  */
 
 public class ArticleArrayAdapter extends ArrayAdapter<Article> {
+    private Context context;
     public ArticleArrayAdapter(Context context, List<Article> articles) {
         super(context, android.R.layout.simple_list_item_1, articles);
+        this.context = context;
     }
 
     @NonNull
@@ -56,7 +59,7 @@ public class ArticleArrayAdapter extends ArrayAdapter<Article> {
 
         String thumbnail = article.getThumbNail();
 
-        if (!TextUtils.isEmpty(thumbnail)) {
+        if (!TextUtils.isEmpty(thumbnail) && NetworkUtils.isNetworkAvailable(context, true)) {
             Picasso.with(getContext()).load(thumbnail).into(imageView);
         }
         return convertView;
