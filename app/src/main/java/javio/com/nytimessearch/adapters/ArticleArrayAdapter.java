@@ -24,6 +24,7 @@ import javio.com.nytimessearch.utils.NetworkUtils;
 
 public class ArticleArrayAdapter extends ArrayAdapter<Article> {
     private Context context;
+
     public ArticleArrayAdapter(Context context, List<Article> articles) {
         super(context, android.R.layout.simple_list_item_1, articles);
         this.context = context;

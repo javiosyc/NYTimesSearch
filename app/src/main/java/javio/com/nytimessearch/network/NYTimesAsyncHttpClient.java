@@ -37,10 +37,6 @@ public class NYTimesAsyncHttpClient {
         return NYTimesAsyncHttpClientHolder.instance;
     }
 
-    private static class NYTimesAsyncHttpClientHolder {
-        private static NYTimesAsyncHttpClient instance = new NYTimesAsyncHttpClient();
-    }
-
     public void articleSearch(final ArrayAdapter<Article> arrayAdapter, String query, int page, final boolean isReset) {
         RequestParams params = new RequestParams();
         params.put("api-key", API_KEY);
@@ -86,5 +82,9 @@ public class NYTimesAsyncHttpClient {
 
     public void articleSearch(ArrayAdapter<Article> arrayAdapter, String query) {
         articleSearch(arrayAdapter, query, 0, true);
+    }
+
+    private static class NYTimesAsyncHttpClientHolder {
+        private static NYTimesAsyncHttpClient instance = new NYTimesAsyncHttpClient();
     }
 }

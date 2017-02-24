@@ -10,10 +10,10 @@ import android.widget.Toast;
  */
 public class NetworkUtils {
 
+    private static final String NETWORK_IS_NOT_AVAILABLE_MESSAGE = "Network is not available";
+
     private NetworkUtils() {
     }
-
-    private static final String NETWORK_IS_NOT_AVAILABLE_MESSAGE = "Network is not available";
 
     public static Boolean isNetworkAvailable(Context context, boolean showMessage) {
         ConnectivityManager connectivityManager

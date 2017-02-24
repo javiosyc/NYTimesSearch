@@ -14,10 +14,20 @@ import java.util.ArrayList;
  */
 
 public class Article implements Parcelable {
+    public static final Creator<Article> CREATOR = new Creator<Article>() {
+        @Override
+        public Article createFromParcel(Parcel source) {
+            return new Article(source);
+        }
+
+        @Override
+        public Article[] newArray(int size) {
+            return new Article[size];
+        }
+    };
     private String webUrl;
     private String headline;
     private String thumbNail;
-
 
     public Article(JSONObject jsonObject) {
         try {
@@ -37,6 +47,13 @@ public class Article implements Parcelable {
         }
     }
 
+
+    protected Article(Parcel in) {
+        this.webUrl = in.readString();
+        this.headline = in.readString();
+        this.thumbNail = in.readString();
+    }
+
     public static ArrayList<Article> fromJsonArray(JSONArray array) {
         ArrayList<Article> results = new ArrayList<>();
 
@@ -49,7 +66,6 @@ public class Article implements Parcelable {
         }
         return results;
     }
-
 
     public String getWebUrl() {
         return webUrl;
@@ -74,22 +90,4 @@ public class Article implements Parcelable {
         dest.writeString(this.headline);
         dest.writeString(this.thumbNail);
     }
-
-    protected Article(Parcel in) {
-        this.webUrl = in.readString();
-        this.headline = in.readString();
-        this.thumbNail = in.readString();
-    }
-
-    public static final Creator<Article> CREATOR = new Creator<Article>() {
-        @Override
-        public Article createFromParcel(Parcel source) {
-            return new Article(source);
-        }
-
-        @Override
-        public Article[] newArray(int size) {
-            return new Article[size];
-        }
-    };
 }
