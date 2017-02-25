@@ -5,6 +5,7 @@ import android.text.TextUtils;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.squareup.picasso.Picasso;
@@ -26,6 +27,10 @@ import javio.com.nytimessearch.models.Multimedia;
 
 public class ArticleUtils {
     private static final String NT_TIMES_URL = "http://www.nytimes.com/";
+
+    private enum ImageLoaderType {
+        PICASSO, GLIDE
+    }
 
     public static ArrayList<Article> fromJsonArray(JSONArray array) {
         ArrayList<Article> results = new ArrayList<>();
@@ -96,7 +101,18 @@ public class ArticleUtils {
         String thumbnail = ArticleUtils.getThumbNailUrl(article);
 
         if (!TextUtils.isEmpty(thumbnail) && NetworkUtils.isNetworkAvailable(context, true)) {
-            Picasso.with(context).load(thumbnail).into(imageView);
+            loadImage(ImageLoaderType.GLIDE, context, thumbnail, imageView);
+        }
+    }
+
+    private static void loadImage(ImageLoaderType loader, Context context, String thumbnail, ImageView imageView) {
+        switch (loader) {
+            case PICASSO:
+                Picasso.with(context).load(thumbnail).into(imageView);
+                break;
+            case GLIDE:
+                Glide.with(context).load(thumbnail).into(imageView);
+                break;
         }
     }
 
@@ -104,4 +120,6 @@ public class ArticleUtils {
         //clear out recycled image from convertView from
         tvTitle.setText(article.getHeadline().getMain());
     }
+
+
 }
