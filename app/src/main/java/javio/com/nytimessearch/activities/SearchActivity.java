@@ -19,8 +19,6 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.GridView;
 
@@ -40,6 +38,7 @@ import javio.com.nytimessearch.utils.NetworkUtils;
 import javio.com.nytimessearch.utils.SearchSettingUtils;
 
 public class SearchActivity extends AppCompatActivity implements SearchSettingFragment.SearchSettingDiglogListener {
+    private static final boolean IS_USE_CUSTOMER_TAB = true;
     @BindView(R.id.gvResults)
     GridView gvResults;
 
@@ -76,25 +75,16 @@ public class SearchActivity extends AppCompatActivity implements SearchSettingFr
         adapter = new ArticleArrayAdapter(this, articles);
         gvResults.setAdapter(adapter);
 
-        gvResults.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                // create an intent
-               /* Intent intent = new Intent(getApplicationContext(), ArticleActivity.class);
+        gvResults.setOnItemClickListener((parent, view, position, id) -> {
+            Article article = articles.get(position);
 
-                Article article = articles.get(position);
-
-                intent.putExtra("article", article);
-
-                startActivity(intent);*/
-
-                Article article = articles.get(position);
-
+            if (IS_USE_CUSTOMER_TAB) {
                 launchCustomTab(article.getWebUrl());
-
+            } else {
+                startArticleActivity(article);
             }
         });
-
+        
         gvResults.setOnScrollListener(new EndlessScrollListener() {
             @Override
             public boolean onLoadMore(int page, int totalItemsCount) {
@@ -104,6 +94,15 @@ public class SearchActivity extends AppCompatActivity implements SearchSettingFr
                 return true;
             }
         });
+    }
+
+    private void startArticleActivity(Article article) {
+
+        Intent intent = new Intent(getApplicationContext(), ArticleActivity.class);
+
+        intent.putExtra("article", article);
+
+        startActivity(intent);
     }
 
     private void launchCustomTab(String webUrl) {

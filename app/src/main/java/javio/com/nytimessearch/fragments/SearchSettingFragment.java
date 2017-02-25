@@ -102,13 +102,11 @@ public class SearchSettingFragment extends DialogFragment implements Button.OnCl
         cbFashion.setChecked(searchSetting.isFashion());
         cbSports.setChecked(searchSetting.isSports());
 
-        btBeginDate.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showEditDialog();
-            }
+        btBeginDate.setOnClickListener(v -> {
+            showEditDialog();
         });
-        btSave.setOnClickListener(this);
+
+        btSave.setOnClickListener(this::onClick);
     }
 
     @NonNull

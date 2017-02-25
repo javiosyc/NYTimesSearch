@@ -30,7 +30,6 @@ public class ArticleActivity extends AppCompatActivity {
 
         final Article article = getIntent().getParcelableExtra("article");
 
-
         webView.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
