@@ -31,6 +31,7 @@ dependencies {
     compile 'com.android.support:design:25.1.1'
 
     testCompile 'junit:junit:4.12'
+    testCompile 'org.json:json:20140107'
 
     compile 'com.loopj.android:android-async-http:1.4.9'
 
@@ -41,4 +42,6 @@ dependencies {
     apt 'com.jakewharton:butterknife-compiler:8.4.0'
 
     compile 'com.android.support:customtabs:25.1.1'
+
+    compile 'com.google.code.gson:gson:2.8.0'
 }

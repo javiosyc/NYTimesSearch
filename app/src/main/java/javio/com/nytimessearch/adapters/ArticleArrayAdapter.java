@@ -16,6 +16,7 @@ import java.util.List;
 
 import javio.com.nytimessearch.R;
 import javio.com.nytimessearch.models.Article;
+import javio.com.nytimessearch.utils.ArticleUtils;
 import javio.com.nytimessearch.utils.NetworkUtils;
 
 /**
@@ -53,12 +54,12 @@ public class ArticleArrayAdapter extends ArrayAdapter<Article> {
 
         TextView tvTitle = (TextView) convertView.findViewById(R.id.tvTitle);
 
-        tvTitle.setText(article.getHeadline());
+        tvTitle.setText(article.getHeadline().getMain());
 
         // populate the thumbnail image
         // remote download the image in the background
 
-        String thumbnail = article.getThumbNail();
+        String thumbnail = ArticleUtils.getThumbNailUrl(article);
 
         if (!TextUtils.isEmpty(thumbnail) && NetworkUtils.isNetworkAvailable(context, true)) {
             Picasso.with(getContext()).load(thumbnail).into(imageView);

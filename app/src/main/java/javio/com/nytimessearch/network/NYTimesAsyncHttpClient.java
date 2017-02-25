@@ -16,6 +16,7 @@ import org.json.JSONObject;
 import cz.msebera.android.httpclient.Header;
 import javio.com.nytimessearch.models.Article;
 import javio.com.nytimessearch.models.SearchSetting;
+import javio.com.nytimessearch.utils.ArticleUtils;
 
 /**
  * Created by javiosyc on 2017/2/21.
@@ -74,7 +75,9 @@ public class NYTimesAsyncHttpClient {
                     if (isReset)
                         arrayAdapter.clear();
 
-                    arrayAdapter.addAll(Article.fromJsonArray(articleJsonResults));
+
+
+                    arrayAdapter.addAll(ArticleUtils.fromJsonArrayUsingJson(articleJsonResults));
 
                     arrayAdapter.notifyDataSetChanged();
                 } catch (JSONException e) {
