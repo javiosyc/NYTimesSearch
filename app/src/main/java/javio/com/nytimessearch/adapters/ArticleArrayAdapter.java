@@ -2,28 +2,27 @@ package javio.com.nytimessearch.adapters;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
-import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
-import com.squareup.picasso.Picasso;
-
+import java.util.ArrayList;
 import java.util.List;
 
 import javio.com.nytimessearch.R;
+import javio.com.nytimessearch.interfaces.ArticleItemInterface;
 import javio.com.nytimessearch.models.Article;
 import javio.com.nytimessearch.utils.ArticleUtils;
-import javio.com.nytimessearch.utils.NetworkUtils;
 
 /**
  * Created by javiosyc on 2017/2/21.
  */
 
-public class ArticleArrayAdapter extends ArrayAdapter<Article> {
+public class ArticleArrayAdapter extends ArrayAdapter<Article> implements ArticleItemInterface {
     private Context context;
 
     public ArticleArrayAdapter(Context context, List<Article> articles) {
@@ -48,22 +47,20 @@ public class ArticleArrayAdapter extends ArrayAdapter<Article> {
 
         //find the image view
         ImageView imageView = (ImageView) convertView.findViewById(R.id.ivImage);
-
-        //clear out recycled image from convertView from
-        imageView.setImageResource(0);
-
         TextView tvTitle = (TextView) convertView.findViewById(R.id.tvTitle);
 
-        tvTitle.setText(article.getHeadline().getMain());
+        ArticleUtils.populatingArticleItemData(context, article, imageView, tvTitle);
 
-        // populate the thumbnail image
-        // remote download the image in the background
-
-        String thumbnail = ArticleUtils.getThumbNailUrl(article);
-
-        if (!TextUtils.isEmpty(thumbnail) && NetworkUtils.isNetworkAvailable(context, true)) {
-            Picasso.with(getContext()).load(thumbnail).into(imageView);
-        }
         return convertView;
+    }
+
+    @Override
+    public void showErrorMessage(String message) {
+        Toast.makeText(getContext(), message, Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    public void addAllItem(ArrayList<Article> articles) {
+        addAll(articles);
     }
 }

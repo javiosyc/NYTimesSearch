@@ -2,8 +2,6 @@ package javio.com.nytimessearch.network;
 
 import android.text.TextUtils;
 import android.util.Log;
-import android.widget.ArrayAdapter;
-import android.widget.Toast;
 
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.JsonHttpResponseHandler;
@@ -14,7 +12,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import cz.msebera.android.httpclient.Header;
-import javio.com.nytimessearch.models.Article;
+import javio.com.nytimessearch.interfaces.ArticleItemInterface;
 import javio.com.nytimessearch.models.SearchSetting;
 import javio.com.nytimessearch.utils.ArticleUtils;
 
@@ -39,7 +37,7 @@ public class NYTimesAsyncHttpClient {
         return NYTimesAsyncHttpClientHolder.instance;
     }
 
-    public void articleSearch(final ArrayAdapter<Article> arrayAdapter, String query, int page, final boolean isReset, SearchSetting searchSetting) {
+    public void articleSearch(final ArticleItemInterface arrayAdapter, String query, int page, final boolean isReset, SearchSetting searchSetting) {
         RequestParams params = buildRequestParams(searchSetting);
         params.put("api-key", API_KEY);
         params.put("page", page);
@@ -51,16 +49,17 @@ public class NYTimesAsyncHttpClient {
         asyncHttpClient.get(URL, params, new JsonHttpResponseHandler() {
             @Override
             public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
-                Log.d("ERROR", String.valueOf(statusCode) + errorResponse.toString());
-                Log.d("ERROR", throwable.toString());
-                String message = null;
                 try {
-                    message = errorResponse.getString("message");
+                    String message = errorResponse.getString("message");
+                    errorHandler(statusCode, throwable, message, arrayAdapter);
                 } catch (JSONException e) {
                     Log.d("ERROR", "errorResponse can not parse." + errorResponse.toString(), e);
+                    errorHandler(statusCode, throwable, errorResponse.toString(), arrayAdapter);
                 }
-                if (!TextUtils.isEmpty(message))
-                    Toast.makeText(arrayAdapter.getContext(), message, Toast.LENGTH_LONG).show();
+            }
+            @Override
+            public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
+                errorHandler(statusCode, throwable, responseString, arrayAdapter);
             }
 
             @Override
@@ -75,9 +74,7 @@ public class NYTimesAsyncHttpClient {
                     if (isReset)
                         arrayAdapter.clear();
 
-
-
-                    arrayAdapter.addAll(ArticleUtils.fromJsonArrayUsingJson(articleJsonResults));
+                    arrayAdapter.addAllItem(ArticleUtils.fromJsonArrayUsingJson(articleJsonResults));
 
                     arrayAdapter.notifyDataSetChanged();
                 } catch (JSONException e) {
@@ -85,6 +82,14 @@ public class NYTimesAsyncHttpClient {
                 }
             }
         });
+    }
+
+    private void errorHandler(int statusCode, Throwable throwable, String errorResponse, ArticleItemInterface arrayAdapter) {
+        Log.d("ERROR", String.valueOf(statusCode) + errorResponse.toString());
+        Log.d("ERROR", throwable.toString());
+
+        if (!TextUtils.isEmpty(errorResponse))
+            arrayAdapter.showErrorMessage(errorResponse);
     }
 
     private RequestParams buildRequestParams(SearchSetting searchSetting) {
@@ -128,8 +133,8 @@ public class NYTimesAsyncHttpClient {
         return result.toString();
     }
 
-    public void articleSearch(ArrayAdapter<Article> arrayAdapter, String query, SearchSetting searchSetting) {
-        articleSearch(arrayAdapter, query, 0, true, searchSetting);
+    public void articleSearch(ArticleItemInterface adapter, String query, SearchSetting searchSetting) {
+        articleSearch(adapter, query, 0, true, searchSetting);
     }
 
     private static class NYTimesAsyncHttpClientHolder {

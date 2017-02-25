@@ -1,7 +1,13 @@
 package javio.com.nytimessearch.utils;
 
+import android.content.Context;
+import android.text.TextUtils;
+import android.widget.ImageView;
+import android.widget.TextView;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.squareup.picasso.Picasso;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -19,7 +25,7 @@ import javio.com.nytimessearch.models.Multimedia;
  */
 
 public class ArticleUtils {
-    private final String NT_TIMES_URL = "http://www.nytimes.com/";
+    private static final String NT_TIMES_URL = "http://www.nytimes.com/";
 
     public static ArrayList<Article> fromJsonArray(JSONArray array) {
         ArrayList<Article> results = new ArrayList<>();
@@ -74,8 +80,23 @@ public class ArticleUtils {
         String url ="";
 
         if(article.getMultimediaList().size() > 0) {
-            url = article.getMultimediaList().get(0).getUrl();
+            StringBuilder builder = new StringBuilder(NT_TIMES_URL);
+            url = builder.append(article.getMultimediaList().get(0).getUrl()).toString();
         }
         return url;
+    }
+
+    public static void populatingArticleItemData(Context context, Article article, ImageView imageView, TextView tvTitle) {
+        //clear out recycled image from convertView from
+        imageView.setImageResource(0);
+        tvTitle.setText(article.getHeadline().getMain());
+
+        // populate the thumbnail image
+        // remote download the image in the background
+        String thumbnail = ArticleUtils.getThumbNailUrl(article);
+
+        if (!TextUtils.isEmpty(thumbnail) && NetworkUtils.isNetworkAvailable(context, true)) {
+            Picasso.with(context).load(thumbnail).into(imageView);
+        }
     }
 }

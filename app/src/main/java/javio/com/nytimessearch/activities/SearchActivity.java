@@ -8,18 +8,20 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.customtabs.CustomTabsIntent;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
+import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.ArrayAdapter;
 import android.widget.GridView;
 
 import java.util.ArrayList;
@@ -29,31 +31,57 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import javio.com.nytimessearch.R;
 import javio.com.nytimessearch.adapters.ArticleArrayAdapter;
+import javio.com.nytimessearch.adapters.ArticleRecyclerViewAdapter;
 import javio.com.nytimessearch.fragments.SearchSettingFragment;
+import javio.com.nytimessearch.interfaces.ArticleItemInterface;
+import javio.com.nytimessearch.listeners.EndlessRecyclerViewScrollListener;
 import javio.com.nytimessearch.listeners.EndlessScrollListener;
 import javio.com.nytimessearch.models.Article;
 import javio.com.nytimessearch.models.SearchSetting;
 import javio.com.nytimessearch.network.NYTimesAsyncHttpClient;
 import javio.com.nytimessearch.utils.NetworkUtils;
+import javio.com.nytimessearch.utils.RecyclerViewUtil;
 import javio.com.nytimessearch.utils.SearchSettingUtils;
 
 public class SearchActivity extends AppCompatActivity implements SearchSettingFragment.SearchSettingDiglogListener {
     private static final boolean IS_USE_CUSTOMER_TAB = true;
+
+    private static final boolean IS_USE_RECYCLER_VIEW = true;
+
+    @Nullable
     @BindView(R.id.gvResults)
     GridView gvResults;
 
+    @Nullable
+    @BindView(R.id.rvResults)
+    RecyclerView rvResults;
+
     private List<Article> articles;
 
-    private ArrayAdapter adapter;
+    private ArticleArrayAdapter adapter;
+
+    private ArticleRecyclerViewAdapter recyclerViewAdapter;
 
     private String queryString;
 
     private SearchSetting searchSetting;
 
+    private EndlessRecyclerViewScrollListener scrollListener;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_search);
+
+        int layoutResID;
+
+        if (IS_USE_RECYCLER_VIEW) {
+            layoutResID = R.layout.activity_search_recyclerview;
+        } else {
+            layoutResID = R.layout.activity_search;
+        }
+
+        setContentView(layoutResID);
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
 
         setSupportActionBar(toolbar);
@@ -72,28 +100,63 @@ public class SearchActivity extends AppCompatActivity implements SearchSettingFr
     private void setupViews() {
         ButterKnife.bind(this);
         articles = new ArrayList<>();
-        adapter = new ArticleArrayAdapter(this, articles);
-        gvResults.setAdapter(adapter);
 
-        gvResults.setOnItemClickListener((parent, view, position, id) -> {
-            Article article = articles.get(position);
+        if (IS_USE_RECYCLER_VIEW) {
+            // Create adapter passing in the sample user data
+            recyclerViewAdapter = new ArticleRecyclerViewAdapter(this, articles);
 
-            if (IS_USE_CUSTOMER_TAB) {
-                launchCustomTab(article.getWebUrl());
-            } else {
-                startArticleActivity(article);
-            }
-        });
-        
-        gvResults.setOnScrollListener(new EndlessScrollListener() {
-            @Override
-            public boolean onLoadMore(int page, int totalItemsCount) {
-                Log.d("DEBUG", "page: " + page + " , totalItemCount" + totalItemsCount);
-                loadNextDataFromApi(page);
+            // Attach the adapter to the recyclerview to populate items
+            rvResults.setAdapter(recyclerViewAdapter);
 
-                return true;
-            }
-        });
+            StaggeredGridLayoutManager linearLayoutManager = new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
+
+            rvResults.setLayoutManager(linearLayoutManager);
+
+            scrollListener = new EndlessRecyclerViewScrollListener(linearLayoutManager) {
+                @Override
+                public void onLoadMore(int page, int totalItemsCount, RecyclerView view) {
+                    Log.d("DEBUG", "page: " + page + " , totalItemCount" + totalItemsCount);
+                    loadNextDataFromApi(page + 1, recyclerViewAdapter);
+                }
+            };
+
+            rvResults.addOnScrollListener(scrollListener);
+
+            RecyclerViewUtil util = new RecyclerViewUtil(this, rvResults);
+
+            util.setOnItemClickListener((position, view) -> {
+                Article article = articles.get(position);
+                showWebView(article);
+            });
+        } else {
+            adapter = new ArticleArrayAdapter(this, articles);
+            gvResults.setAdapter(adapter);
+
+            gvResults.setOnItemClickListener((parent, view, position, id) -> {
+
+                Article article = articles.get(position);
+
+                showWebView(article);
+            });
+
+            gvResults.setOnScrollListener(new EndlessScrollListener() {
+                @Override
+                public boolean onLoadMore(int page, int totalItemsCount) {
+                    Log.d("DEBUG", "page: " + page + " , totalItemCount" + totalItemsCount);
+                    loadNextDataFromApi(page, adapter);
+
+                    return true;
+                }
+            });
+        }
+    }
+
+    private void showWebView(Article article) {
+        if (IS_USE_CUSTOMER_TAB) {
+            launchCustomTab(article.getWebUrl());
+        } else {
+            startArticleActivity(article);
+        }
     }
 
     private void startArticleActivity(Article article) {
@@ -134,10 +197,10 @@ public class SearchActivity extends AppCompatActivity implements SearchSettingFr
         customTabsIntent.launchUrl(SearchActivity.this, Uri.parse(webUrl));
     }
 
-    private void loadNextDataFromApi(int page) {
+    private void loadNextDataFromApi(int page, ArticleItemInterface itemAdapter) {
         Log.d("DEBUG", "page = " + page);
         if (!TextUtils.isEmpty(queryString))
-            NYTimesAsyncHttpClient.getInstance().articleSearch(adapter, queryString, page - 1, false, this.searchSetting);
+            NYTimesAsyncHttpClient.getInstance().articleSearch(itemAdapter, queryString, page - 1, false, this.searchSetting);
     }
 
     @Override
@@ -153,7 +216,12 @@ public class SearchActivity extends AppCompatActivity implements SearchSettingFr
                 searchView.clearFocus();
                 if (!TextUtils.isEmpty(query) && NetworkUtils.isNetworkAvailable(SearchActivity.this, true)) {
                     queryString = query;
-                    NYTimesAsyncHttpClient.getInstance().articleSearch(adapter, query, searchSetting);
+
+                    if (IS_USE_RECYCLER_VIEW) {
+                        NYTimesAsyncHttpClient.getInstance().articleSearch(recyclerViewAdapter, query, searchSetting);
+                    } else {
+                        NYTimesAsyncHttpClient.getInstance().articleSearch(adapter, query, searchSetting);
+                    }
                     return true;
                 }
                 return false;
