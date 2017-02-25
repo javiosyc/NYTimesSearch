@@ -23,7 +23,19 @@ import javio.com.nytimessearch.utils.ArticleUtils;
  * Created by javiosyc on 2017/2/21.
  */
 
-public class ArticleRecyclerViewAdapter extends RecyclerView.Adapter<ArticleRecyclerViewAdapter.ViewHolder> implements ArticleItemInterface {
+public class ArticleRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements ArticleItemInterface {
+
+
+    public class ViewHolderOnlyText extends RecyclerView.ViewHolder {
+        @BindView(R.id.tvTitle)
+        TextView tvTitle;
+
+        public ViewHolderOnlyText(View view) {
+            super((view));
+            ButterKnife.bind(this, view);
+        }
+
+    }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
 
@@ -35,7 +47,7 @@ public class ArticleRecyclerViewAdapter extends RecyclerView.Adapter<ArticleRecy
 
         public ViewHolder(View itemView) {
             super(itemView);
-            ButterKnife.bind(this,itemView);
+            ButterKnife.bind(this, itemView);
         }
     }
 
@@ -43,6 +55,8 @@ public class ArticleRecyclerViewAdapter extends RecyclerView.Adapter<ArticleRecy
     private List<Article> mArticles;
     // Store the context for easy access
     private Context mContext;
+
+    private final int TEXT = 0, TEXT_AND_IMAGE = 1;
 
     // Pass in the contact array into the constructor
     public ArticleRecyclerViewAdapter(Context context, List<Article> articles) {
@@ -58,24 +72,44 @@ public class ArticleRecyclerViewAdapter extends RecyclerView.Adapter<ArticleRecy
 
 
     @Override
-    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+
+        RecyclerView.ViewHolder viewHolder;
 
         Context context = parent.getContext();
 
         LayoutInflater inflater = LayoutInflater.from(context);
 
-        View contactView = inflater.inflate(R.layout.item_article_result_recyclerview,parent,false);
-
-        ViewHolder viewHolder = new ViewHolder(contactView);
-
+        switch (viewType) {
+            case TEXT_AND_IMAGE:
+                View v2 = inflater.inflate(R.layout.item_article_result_recyclerview, parent, false);
+                viewHolder = new ViewHolder(v2);
+                break;
+            case TEXT:
+            default:
+                View v1 = inflater.inflate(R.layout.item_article_result_recyclerview_only_text, parent, false);
+                viewHolder = new ViewHolderOnlyText(v1);
+                break;
+        }
         return viewHolder;
     }
 
     @Override
-    public void onBindViewHolder(ViewHolder viewHolder, int position) {
+    public void onBindViewHolder(RecyclerView.ViewHolder viewHolder, int position) {
 
         Article article = mArticles.get(position);
-        ArticleUtils.populatingArticleItemData(mContext, article, viewHolder.imageView, viewHolder.tvTitle);
+
+        switch (viewHolder.getItemViewType()) {
+            case TEXT_AND_IMAGE:
+                ViewHolder vh1 = (ViewHolder) viewHolder;
+                ArticleUtils.populatingArticleItemData(mContext, article, vh1.imageView, vh1.tvTitle);
+                break;
+            case TEXT:
+            default:
+                ViewHolderOnlyText vh2 = (ViewHolderOnlyText) viewHolder;
+                ArticleUtils.populatingArticleItemData(mContext, article , vh2.tvTitle);
+                break;
+        }
     }
 
     @Override
@@ -97,5 +131,17 @@ public class ArticleRecyclerViewAdapter extends RecyclerView.Adapter<ArticleRecy
     @Override
     public void addAllItem(ArrayList<Article> articles) {
         mArticles.addAll(articles);
+    }
+
+    @Override
+    public int getItemViewType(int position) {
+        int type;
+        Article article = mArticles.get(position);
+        if (article.getMultimediaList().size() > 0) {
+            type = TEXT_AND_IMAGE;
+        } else {
+            type = TEXT;
+        }
+        return type;
     }
 }

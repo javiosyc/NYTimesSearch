@@ -45,7 +45,7 @@ public class ArticleUtils {
         try {
             article.setWebUrl(jsonObject.getString("web_url"));
 
-            article.setHeadline( new Headline(jsonObject.getJSONObject("headline").getString("main")));
+            article.setHeadline(new Headline(jsonObject.getJSONObject("headline").getString("main")));
 
             List<Multimedia> multimediaList = new ArrayList<>();
 
@@ -77,9 +77,9 @@ public class ArticleUtils {
     }
 
     public static String getThumbNailUrl(Article article) {
-        String url ="";
+        String url = "";
 
-        if(article.getMultimediaList().size() > 0) {
+        if (article.getMultimediaList().size() > 0) {
             StringBuilder builder = new StringBuilder(NT_TIMES_URL);
             url = builder.append(article.getMultimediaList().get(0).getUrl()).toString();
         }
@@ -98,5 +98,10 @@ public class ArticleUtils {
         if (!TextUtils.isEmpty(thumbnail) && NetworkUtils.isNetworkAvailable(context, true)) {
             Picasso.with(context).load(thumbnail).into(imageView);
         }
+    }
+
+    public static void populatingArticleItemData(Context context, Article article, TextView tvTitle) {
+        //clear out recycled image from convertView from
+        tvTitle.setText(article.getHeadline().getMain());
     }
 }
