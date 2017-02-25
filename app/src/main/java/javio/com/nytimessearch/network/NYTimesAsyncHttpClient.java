@@ -15,6 +15,7 @@ import org.json.JSONObject;
 
 import cz.msebera.android.httpclient.Header;
 import javio.com.nytimessearch.models.Article;
+import javio.com.nytimessearch.models.SearchSetting;
 
 /**
  * Created by javiosyc on 2017/2/21.
@@ -37,12 +38,15 @@ public class NYTimesAsyncHttpClient {
         return NYTimesAsyncHttpClientHolder.instance;
     }
 
-    public void articleSearch(final ArrayAdapter<Article> arrayAdapter, String query, int page, final boolean isReset) {
-        RequestParams params = new RequestParams();
+    public void articleSearch(final ArrayAdapter<Article> arrayAdapter, String query, int page, final boolean isReset, SearchSetting searchSetting) {
+        RequestParams params = buildRequestParams(searchSetting);
         params.put("api-key", API_KEY);
         params.put("page", page);
         params.put("q", query);
         params.put("fl", LIST_FIELDS);
+
+        Log.d ("params", params.toString());
+
         asyncHttpClient.get(URL, params, new JsonHttpResponseHandler() {
             @Override
             public void onFailure(int statusCode, Header[] headers, Throwable throwable, JSONObject errorResponse) {
@@ -80,8 +84,49 @@ public class NYTimesAsyncHttpClient {
         });
     }
 
-    public void articleSearch(ArrayAdapter<Article> arrayAdapter, String query) {
-        articleSearch(arrayAdapter, query, 0, true);
+    private RequestParams buildRequestParams(SearchSetting searchSetting) {
+
+        RequestParams params = new RequestParams();
+
+        if (searchSetting == null)
+            return params;
+
+        if (!TextUtils.isEmpty(searchSetting.getBeginDate()))
+            params.put("begin_date", searchSetting.getBeginDate());
+
+
+        if (!TextUtils.isEmpty(searchSetting.getSortOrder()))
+            params.put("sort", searchSetting.getSortOrder());
+
+        String newsDesk = getNewDeskString(searchSetting);
+        if (!TextUtils.isEmpty(newsDesk))
+            params.put("fq", newsDesk);
+
+        return params;
+    }
+
+    private String getNewDeskString(SearchSetting searchSetting) {
+        StringBuilder builder = new StringBuilder();
+
+        //'fq': "news_desk:(\"Arts\" \"Sports\" \"Fashion & Style\")",
+        if (searchSetting.isArts())
+            builder.append("\"Arts\"");
+        if (searchSetting.isFashion())
+            builder.append(" \"Fashion & Style\"");
+        if (searchSetting.isSports())
+            builder.append(" \"Sports\"");
+
+        if (builder.length() == 0) {
+            return "";
+        }
+
+        StringBuilder result = new StringBuilder("news_desk:(");
+        result.append(builder).append(")");
+        return result.toString();
+    }
+
+    public void articleSearch(ArrayAdapter<Article> arrayAdapter, String query, SearchSetting searchSetting) {
+        articleSearch(arrayAdapter, query, 0, true, searchSetting);
     }
 
     private static class NYTimesAsyncHttpClientHolder {

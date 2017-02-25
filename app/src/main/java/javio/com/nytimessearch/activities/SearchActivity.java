@@ -1,7 +1,10 @@
 package javio.com.nytimessearch.activities;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
@@ -22,12 +25,15 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import javio.com.nytimessearch.R;
 import javio.com.nytimessearch.adapters.ArticleArrayAdapter;
+import javio.com.nytimessearch.fragments.SearchSettingFragment;
 import javio.com.nytimessearch.listeners.EndlessScrollListener;
 import javio.com.nytimessearch.models.Article;
+import javio.com.nytimessearch.models.SearchSetting;
 import javio.com.nytimessearch.network.NYTimesAsyncHttpClient;
 import javio.com.nytimessearch.utils.NetworkUtils;
+import javio.com.nytimessearch.utils.SearchSettingUtils;
 
-public class SearchActivity extends AppCompatActivity {
+public class SearchActivity extends AppCompatActivity implements SearchSettingFragment.SearchSettingDiglogListener {
     @BindView(R.id.gvResults)
     GridView gvResults;
 
@@ -36,6 +42,8 @@ public class SearchActivity extends AppCompatActivity {
     private ArrayAdapter adapter;
 
     private String queryString;
+
+    private SearchSetting searchSetting;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,6 +54,14 @@ public class SearchActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         setupViews();
+
+        initSettings();
+    }
+
+    private void initSettings() {
+        searchSetting = new SearchSetting();
+        SharedPreferences mSettings = this.getSharedPreferences("Settings", Context.MODE_PRIVATE);
+        SearchSettingUtils.populateSearchSetting(mSettings, searchSetting);
     }
 
     private void setupViews() {
@@ -82,7 +98,7 @@ public class SearchActivity extends AppCompatActivity {
     private void loadNextDataFromApi(int page) {
         Log.d("DEBUG", "page = " + page);
         if (!TextUtils.isEmpty(queryString))
-            NYTimesAsyncHttpClient.getInstance().articleSearch(adapter, queryString, page - 1, false);
+            NYTimesAsyncHttpClient.getInstance().articleSearch(adapter, queryString, page - 1, false,this.searchSetting);
     }
 
     @Override
@@ -98,7 +114,7 @@ public class SearchActivity extends AppCompatActivity {
                 searchView.clearFocus();
                 if (!TextUtils.isEmpty(query) && NetworkUtils.isNetworkAvailable(SearchActivity.this, true)) {
                     queryString = query;
-                    NYTimesAsyncHttpClient.getInstance().articleSearch(adapter, query);
+                    NYTimesAsyncHttpClient.getInstance().articleSearch(adapter, query,searchSetting);
                     return true;
                 }
                 return false;
@@ -121,9 +137,29 @@ public class SearchActivity extends AppCompatActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            showSettingDialogFragment();
             return true;
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void showSettingDialogFragment() {
+        FragmentManager fm = getSupportFragmentManager();
+        SearchSettingFragment searchSettingFragmentar = SearchSettingFragment.newInstance(this.searchSetting);
+        searchSettingFragmentar.show(fm, "fragment_edit_settings");
+    }
+
+    @Override
+    public void onFinishEditDialog(SearchSetting settings) {
+
+        Log.d("DEBUG", settings.getBeginDate());
+
+        saveSettings(settings);
+    }
+
+    private void saveSettings(SearchSetting settings) {
+        SharedPreferences mSettings = this.getSharedPreferences("Settings", Context.MODE_PRIVATE);
+        SearchSettingUtils.saveSearchSetting(mSettings, this.searchSetting, settings);
     }
 }
