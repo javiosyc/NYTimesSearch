@@ -1,10 +1,16 @@
 package javio.com.nytimessearch.activities;
 
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
+import android.support.customtabs.CustomTabsIntent;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
@@ -74,13 +80,18 @@ public class SearchActivity extends AppCompatActivity implements SearchSettingFr
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 // create an intent
-                Intent intent = new Intent(getApplicationContext(), ArticleActivity.class);
+               /* Intent intent = new Intent(getApplicationContext(), ArticleActivity.class);
 
                 Article article = articles.get(position);
 
                 intent.putExtra("article", article);
 
-                startActivity(intent);
+                startActivity(intent);*/
+
+                Article article = articles.get(position);
+
+                launchCustomTab(article.getWebUrl());
+
             }
         });
 
@@ -95,10 +106,39 @@ public class SearchActivity extends AppCompatActivity implements SearchSettingFr
         });
     }
 
+    private void launchCustomTab(String webUrl) {
+
+        Intent intent = new Intent(Intent.ACTION_SEND);
+        intent.setType("text/plain");
+        intent.putExtra(Intent.EXTRA_TEXT, webUrl);
+
+        Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.ic_share_black_24dp);
+        int requestCode = 100;
+
+        PendingIntent pendingIntent = PendingIntent.getActivity(this,
+                requestCode,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT);
+
+
+        CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder();
+        // set toolbar color and/or setting custom actions before invoking build()
+        // Once ready, call CustomTabsIntent.Builder.build() to create a CustomTabsIntent
+
+        builder.setToolbarColor(ContextCompat.getColor(this, R.color.colorPrimary));
+
+        builder.setActionButton(bitmap, "Share Link", pendingIntent, true);
+
+        CustomTabsIntent customTabsIntent = builder.build();
+        // and launch the desired Url with CustomTabsIntent.launchUrl()
+
+        customTabsIntent.launchUrl(SearchActivity.this, Uri.parse(webUrl));
+    }
+
     private void loadNextDataFromApi(int page) {
         Log.d("DEBUG", "page = " + page);
         if (!TextUtils.isEmpty(queryString))
-            NYTimesAsyncHttpClient.getInstance().articleSearch(adapter, queryString, page - 1, false,this.searchSetting);
+            NYTimesAsyncHttpClient.getInstance().articleSearch(adapter, queryString, page - 1, false, this.searchSetting);
     }
 
     @Override
@@ -114,7 +154,7 @@ public class SearchActivity extends AppCompatActivity implements SearchSettingFr
                 searchView.clearFocus();
                 if (!TextUtils.isEmpty(query) && NetworkUtils.isNetworkAvailable(SearchActivity.this, true)) {
                     queryString = query;
-                    NYTimesAsyncHttpClient.getInstance().articleSearch(adapter, query,searchSetting);
+                    NYTimesAsyncHttpClient.getInstance().articleSearch(adapter, query, searchSetting);
                     return true;
                 }
                 return false;

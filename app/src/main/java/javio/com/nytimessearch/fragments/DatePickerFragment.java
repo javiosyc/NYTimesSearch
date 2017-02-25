@@ -14,10 +14,6 @@ import java.util.Calendar;
 public class DatePickerFragment extends DialogFragment {
 
 
-    public interface DatePickerDialogFragmentListener {
-        void onFinishEditDialog(String inputText);
-    }
-
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
 
@@ -29,5 +25,9 @@ public class DatePickerFragment extends DialogFragment {
         DatePickerDialog.OnDateSetListener listener = (DatePickerDialog.OnDateSetListener) getTargetFragment();
 
         return new DatePickerDialog(getActivity(), listener, year, month, day);
+    }
+
+    public interface DatePickerDialogFragmentListener {
+        void onFinishEditDialog(String inputText);
     }
 }

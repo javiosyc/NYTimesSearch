@@ -35,20 +35,16 @@ import javio.com.nytimessearch.models.SearchSetting;
 public class SearchSettingFragment extends DialogFragment implements Button.OnClickListener, DatePickerDialog.OnDateSetListener {
 
     private static final String ARG_PARAM1 = "setting";
+    List<String> order;
     private SearchSetting setting;
     private TextView tvBeginDateSetting;
-
     private ImageButton btBeginDate;
-
     private Spinner spSortOrder;
     private CheckBox cbArts;
     private CheckBox cbFashion;
     private CheckBox cbSports;
     private Button btSave;
-
     private SearchSetting searchSetting;
-
-    List<String> order;
 
     public SearchSettingFragment() {
         order = new ArrayList<>();
@@ -95,10 +91,10 @@ public class SearchSettingFragment extends DialogFragment implements Button.OnCl
 
         tvBeginDateSetting.setText(searchSetting.getBeginDate());
 
-        String sortOrder =searchSetting.getSortOrder();
-        if("oldest".equals(sortOrder) || TextUtils.isEmpty(sortOrder))
+        String sortOrder = searchSetting.getSortOrder();
+        if ("oldest".equals(sortOrder) || TextUtils.isEmpty(sortOrder))
             spSortOrder.setSelection(0);
-        else if ("newest".equals(sortOrder)){
+        else if ("newest".equals(sortOrder)) {
             spSortOrder.setSelection(1);
         }
 

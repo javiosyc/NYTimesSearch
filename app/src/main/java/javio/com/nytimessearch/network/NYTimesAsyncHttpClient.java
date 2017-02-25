@@ -45,7 +45,7 @@ public class NYTimesAsyncHttpClient {
         params.put("q", query);
         params.put("fl", LIST_FIELDS);
 
-        Log.d ("params", params.toString());
+        Log.d("params", params.toString());
 
         asyncHttpClient.get(URL, params, new JsonHttpResponseHandler() {
             @Override
