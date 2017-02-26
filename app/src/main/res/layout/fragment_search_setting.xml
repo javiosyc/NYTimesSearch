@@ -1,23 +1,25 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
     tools:context="javio.com.nytimessearch.fragments.SearchSettingFragment">
 
-
     <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
-
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
 
         <TextView
             android:id="@+id/tvBeginDate"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerHorizontal="true"
-            android:layout_marginTop="38dp"
+            android:layout_marginTop="70dp"
+            android:padding="@dimen/item_title_padding"
             android:text="@string/beginDate"
-            android:textAlignment="center" />
+            android:textAlignment="center"
+            android:textColor="@color/item_title"
+            android:textSize="18sp"
+            android:textStyle="normal|bold" />
 
         <TextView
             android:id="@+id/tvBeginDateSetting"
@@ -26,15 +28,16 @@
             android:layout_below="@+id/tvBeginDate"
             android:layout_centerHorizontal="true"
             android:hint="@string/beginDate"
-            android:textAlignment="center" />
+            android:textAlignment="center"
+            android:padding="@dimen/item_title_padding"
+            android:textSize="18sp" />
 
         <ImageButton
             android:id="@+id/ibBeginDate"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignTop="@+id/tvBeginDateSetting"
-            android:layout_toEndOf="@+id/tvBeginDateSetting"
-            android:layout_toRightOf="@+id/tvBeginDateSetting"
+            android:layout_below="@+id/tvBeginDateSetting"
+            android:layout_centerHorizontal="true"
             android:background="@drawable/ic_calendar_24" />
 
         <TextView
@@ -43,13 +46,16 @@
             android:layout_height="wrap_content"
             android:layout_below="@+id/tvBeginDateSetting"
             android:layout_centerHorizontal="true"
-            android:layout_marginTop="22dp"
+            android:layout_marginTop="40dp"
             android:text="@string/sortOrder"
-            android:textAlignment="center" />
+            android:textAlignment="center"
+            android:textSize="18sp"
+            android:textColor="@color/item_title"
+            android:textStyle="normal|bold" />
 
         <Spinner
             android:id="@+id/spSortOrder"
-            android:layout_width="80dp"
+            android:layout_width="100dp"
             android:layout_height="wrap_content"
             android:layout_below="@+id/tvSortOrder"
             android:layout_centerHorizontal="true" />
@@ -61,7 +67,10 @@
             android:layout_below="@+id/spSortOrder"
             android:layout_centerHorizontal="true"
             android:layout_marginTop="36dp"
-            android:text="@string/newsDeskValues" />
+            android:text="@string/newsDeskValues"
+            android:textStyle="normal|bold"
+            android:textSize="18sp"
+            android:textColor="@color/item_title" />
 
         <CheckBox
             android:id="@+id/cbArts"
@@ -69,7 +78,8 @@
             android:layout_height="wrap_content"
             android:layout_below="@+id/tvNewsDesk"
             android:layout_centerHorizontal="true"
-            android:text="Arts" />
+            android:text="Arts"
+            android:padding="@dimen/itemMargin" />
 
         <CheckBox
             android:id="@+id/cbFashion"
@@ -77,7 +87,8 @@
             android:layout_height="wrap_content"
             android:layout_below="@+id/cbArts"
             android:layout_centerHorizontal="true"
-            android:text="Fashion Style" />
+            android:text="Fashion Style"
+            android:padding="@dimen/itemMargin" />
 
         <CheckBox
             android:id="@+id/cbSports"
@@ -85,19 +96,21 @@
             android:layout_height="wrap_content"
             android:layout_below="@+id/cbFashion"
             android:layout_centerHorizontal="true"
-            android:text="Sports" />
+            android:text="Sports"
+            android:padding="@dimen/item_title_padding" />
 
         <Button
             android:id="@+id/btSave"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_alignLeft="@+id/spSortOrder"
             android:layout_alignParentBottom="true"
             android:layout_alignParentEnd="true"
             android:layout_alignParentRight="true"
-            android:layout_alignStart="@+id/spSortOrder"
             android:layout_marginBottom="20dp"
-            android:text="@string/save" />
-
+            android:text="@string/save"
+            android:background="@color/item_title"
+            android:textSize="18sp"
+            android:textStyle="normal|bold"
+            android:textColor="@android:color/background_light" />
     </RelativeLayout>
 </FrameLayout>

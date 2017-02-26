@@ -12,7 +12,6 @@ import android.support.annotation.Nullable;
 import android.support.customtabs.CustomTabsIntent;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
@@ -83,6 +82,12 @@ public class SearchActivity extends AppCompatActivity implements SearchSettingFr
         setContentView(layoutResID);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+
+        toolbar.setLogo(R.drawable.ic_book_24);
+
+        toolbar.setTitle("");
+
+        toolbar.setBackgroundColor(ContextCompat.getColor(this, R.color.colorActionBar));
 
         setSupportActionBar(toolbar);
 
@@ -209,7 +214,8 @@ public class SearchActivity extends AppCompatActivity implements SearchSettingFr
         getMenuInflater().inflate(R.menu.menu_search, menu);
 
         MenuItem searchItem = menu.findItem(R.id.action_search);
-        final SearchView searchView = (SearchView) MenuItemCompat.getActionView(searchItem);
+        final SearchView searchView = (SearchView) searchItem.getActionView();
+        
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
