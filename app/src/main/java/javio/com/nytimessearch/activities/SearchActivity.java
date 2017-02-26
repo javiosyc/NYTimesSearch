@@ -16,7 +16,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
-import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
@@ -41,6 +40,7 @@ import javio.com.nytimessearch.network.NYTimesAsyncHttpClient;
 import javio.com.nytimessearch.utils.NetworkUtils;
 import javio.com.nytimessearch.utils.RecyclerViewUtil;
 import javio.com.nytimessearch.utils.SearchSettingUtils;
+import javio.com.nytimessearch.utils.ToolBarUtils;
 
 public class SearchActivity extends AppCompatActivity implements SearchSettingFragment.SearchSettingDiglogListener {
     private static final boolean IS_USE_CUSTOMER_TAB = true;
@@ -81,80 +81,77 @@ public class SearchActivity extends AppCompatActivity implements SearchSettingFr
 
         setContentView(layoutResID);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-
-        toolbar.setLogo(R.drawable.ic_book_24);
-
-        toolbar.setTitle("");
-
-        toolbar.setBackgroundColor(ContextCompat.getColor(this, R.color.colorActionBar));
-
-        setSupportActionBar(toolbar);
-
         setupViews();
 
-        initSettings();
-    }
-
-    private void initSettings() {
-        searchSetting = new SearchSetting();
-        SharedPreferences mSettings = this.getSharedPreferences("Settings", Context.MODE_PRIVATE);
-        SearchSettingUtils.populateSearchSetting(mSettings, searchSetting);
+        ToolBarUtils.initSettings(searchSetting, this);
     }
 
     private void setupViews() {
+
+        ToolBarUtils.setUpToolbar("", this);
+
         ButterKnife.bind(this);
+
         articles = new ArrayList<>();
 
         if (IS_USE_RECYCLER_VIEW) {
-            // Create adapter passing in the sample user data
-            recyclerViewAdapter = new ArticleRecyclerViewAdapter(this, articles);
-
-            // Attach the adapter to the recyclerview to populate items
-            rvResults.setAdapter(recyclerViewAdapter);
-
-            StaggeredGridLayoutManager linearLayoutManager = new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
-
-            rvResults.setLayoutManager(linearLayoutManager);
-
-            scrollListener = new EndlessRecyclerViewScrollListener(linearLayoutManager) {
-                @Override
-                public void onLoadMore(int page, int totalItemsCount, RecyclerView view) {
-                    Log.d("DEBUG", "page: " + page + " , totalItemCount" + totalItemsCount);
-                    loadNextDataFromApi(page + 1, recyclerViewAdapter);
-                }
-            };
-
-            rvResults.addOnScrollListener(scrollListener);
-
-            RecyclerViewUtil util = new RecyclerViewUtil(this, rvResults);
-
-            util.setOnItemClickListener((position, view) -> {
-                Article article = articles.get(position);
-                showWebView(article);
-            });
+            setUpRecyclerVIew();
         } else {
-            adapter = new ArticleArrayAdapter(this, articles);
-            gvResults.setAdapter(adapter);
-
-            gvResults.setOnItemClickListener((parent, view, position, id) -> {
-
-                Article article = articles.get(position);
-
-                showWebView(article);
-            });
-
-            gvResults.setOnScrollListener(new EndlessScrollListener() {
-                @Override
-                public boolean onLoadMore(int page, int totalItemsCount) {
-                    Log.d("DEBUG", "page: " + page + " , totalItemCount" + totalItemsCount);
-                    loadNextDataFromApi(page, adapter);
-
-                    return true;
-                }
-            });
+            setUpGridView();
         }
     }
+
+    private void setUpGridView() {
+        adapter = new ArticleArrayAdapter(this, articles);
+        gvResults.setAdapter(adapter);
+
+        gvResults.setOnItemClickListener((parent, view, position, id) -> {
+
+            Article article = articles.get(position);
+
+            showWebView(article);
+        });
+
+        gvResults.setOnScrollListener(new EndlessScrollListener() {
+            @Override
+            public boolean onLoadMore(int page, int totalItemsCount) {
+                Log.d("DEBUG", "page: " + page + " , totalItemCount" + totalItemsCount);
+                loadNextDataFromApi(page, adapter);
+
+                return true;
+            }
+        });
+    }
+
+    private void setUpRecyclerVIew() {
+        // Create adapter passing in the sample user data
+        recyclerViewAdapter = new ArticleRecyclerViewAdapter(this, articles);
+
+        // Attach the adapter to the recyclerview to populate items
+        rvResults.setAdapter(recyclerViewAdapter);
+
+        StaggeredGridLayoutManager linearLayoutManager = new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
+
+        rvResults.setLayoutManager(linearLayoutManager);
+
+        scrollListener = new EndlessRecyclerViewScrollListener(linearLayoutManager) {
+            @Override
+            public void onLoadMore(int page, int totalItemsCount, RecyclerView view) {
+                Log.d("DEBUG", "page: " + page + " , totalItemCount" + totalItemsCount);
+                loadNextDataFromApi(page + 1, recyclerViewAdapter);
+            }
+        };
+
+        rvResults.addOnScrollListener(scrollListener);
+
+        RecyclerViewUtil util = new RecyclerViewUtil(this, rvResults);
+
+        util.setOnItemClickListener((position, view) -> {
+            Article article = articles.get(position);
+            showWebView(article);
+        });
+    }
+
 
     private void showWebView(Article article) {
         if (IS_USE_CUSTOMER_TAB) {
@@ -215,7 +212,7 @@ public class SearchActivity extends AppCompatActivity implements SearchSettingFr
 
         MenuItem searchItem = menu.findItem(R.id.action_search);
         final SearchView searchView = (SearchView) searchItem.getActionView();
-        
+
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
